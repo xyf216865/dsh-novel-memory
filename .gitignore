@@ -1,0 +1,16 @@
+node_modules/
+*.log
+.DS_Store
+
+# 本地书库（原文与记忆，绝不提交）
+.dsh-novel/
+*.txt
+
+# 临时脚本与提取物
+_tmp/
+_dshdocs/
+
+# 密钥与凭据
+.env
+.credentials.yaml
+*cookie*.txt

@@ -1,0 +1,137 @@
+import fs from 'node:fs'
+import { fileURLToPath } from 'node:url'
+
+const ROOT = fileURLToPath(new URL('.', import.meta.url))
+
+// Plugin reload re-imports this entry, but Node caches relative ESM imports by
+// URL; without a query the host would keep running the old lib/*.js code.
+const bust = `?v=${Date.now()}`
+const { createStore } = await import(`./lib/store.js${bust}`)
+const { toolDefinitions, provideIngest } = await import(`./lib/tools.js${bust}`)
+const { createService } = await import(`./lib/service.js${bust}`)
+const { buildDigest } = await import(`./lib/digest.js${bust}`)
+const { mountPrompt } = await import(`./lib/prompt.js${bust}`)
+const { mountRemote } = await import(`./lib/remote.js${bust}`)
+const ingest = await import(`./lib/ingest.js${bust}`)
+provideIngest(ingest)
+
+export const name = 'novel-memory'
+export const inject = ['tools']
+
+const WAKE_DESCRIPTION = '小说记忆按需开启：用户提到具体小说、要求读书/续写/查书或管理书架时，先 action=on 唤出 novel_* 工具；不聊书别开，用完 action=off。'
+
+export function apply(ctx, config = {}) {
+  const store = createStore(config)
+  const prompt = mountPrompt(ctx, store, buildDigest)
+  const tools = toolDefinitions(store, prompt)
+  // Keep a process-wide pointer so already-registered tools dispatch to the
+  // newest implementation after a plugin reload (Node caches old instances).
+  const latest = new Map(tools.map(tool => [tool.name, tool]))
+  globalThis.__dshNovelLatest = latest
+
+  const mounted = new Map() // agentId -> { agent, disposers }
+
+  function agentTools(agent) {
+    return agent && agent.ctx && agent.ctx.tools ? agent.ctx.tools : ctx.tools
+  }
+
+  function activate(agent) {
+    if (!agent) return false
+    const key = agent.id || String(agent)
+    if (mounted.has(key)) return true
+    const scope = agent.ctx && typeof agent.ctx.effect === 'function' ? agent.ctx : ctx
+    const target = agentTools(agent)
+    const disposers = []
+    for (const tool of tools) {
+      const stable = { ...tool, execute: (args, exec) => (globalThis.__dshNovelLatest.get(tool.name) || tool).execute(args, exec) }
+
+      try {
+        const dispose = scope.effect(() => target.register(stable), `novel-memory: ${tool.name}`)
+        if (typeof dispose === 'function') disposers.push(dispose)
+      } catch {
+        // already registered in an old instance: leave it, the fresh one still serves new sessions
+      }
+    }
+    mounted.set(key, { agent, disposers })
+    return true
+  }
+
+  function deactivate(agent) {
+    const key = agent && (agent.id || String(agent))
+    const entry = key ? mounted.get(key) : null
+    if (!entry) return false
+    for (const dispose of entry.disposers) {
+      try { dispose() } catch { /* already gone */ }
+    }
+    mounted.delete(key)
+    return true
+  }
+
+  ctx.effect(() => ctx.tools.register({
+    name: 'novel_wake',
+    description: WAKE_DESCRIPTION,
+    parameters: {
+      type: 'object',
+      properties: {
+        action: { type: 'string', enum: ['on', 'off'], description: 'on 开启小说记忆工具；off 收起' },
+        book: { type: 'string', description: '可选：开启后顺带把这本书挂到本会话（用标题或 id 的唯一片段）' },
+      },
+      required: ['action'],
+      additionalProperties: false,
+    },
+    output: { schema: {}, render: (_args, value) => [{ type: 'text', text: value.text }] },
+    execute(args, exec) {
+      const agent = exec && exec.agent
+      const action = String((args && args.action) || 'on')
+      if (action === 'off') {
+        const had = deactivate(agent)
+        return { text: had ? '小说记忆工具已收起，本会话不再占用上下文。' : '小说记忆工具本来就没开着。' }
+      }
+      activate(agent)
+      let text = '已开启小说记忆工具：novel_index / novel_find / novel_memo / novel_world / novel_check。用完记得 action=off。'
+      if (args && args.book) {
+        try {
+          const id = store.resolve(args.book)
+          if (agent && agent.id) {
+            store.setAttached(agent.id, id)
+            if (typeof prompt.ensure === 'function') {
+              try { prompt.ensure(agent) } catch { /* best effort */ }
+            }
+          }
+          const { book } = store.load(id)
+          text += `\n已把《${book.title}》[${id}] 挂到本会话。`
+        } catch (error) {
+          text += `\n（挂书失败：${error.message}）`
+        }
+      }
+      return { text }
+    },
+  }), 'novel-memory: wake')
+
+  // Sessions that already have a book attached keep their toolset: attach implies reading.
+  ctx.on('agent/created', ({ agent }) => {
+    try {
+      if (agent && store.attached()[agent.id]) activate(agent)
+    } catch { /* attach map unreadable: start dark */ }
+  })
+
+  mountRemote(ctx, store, serviceStore => createService(serviceStore, ingest))
+
+  if (typeof ctx.inject === 'function') {
+    ctx.inject(['skills'], scoped => {
+      let content = ''
+      try {
+        content = fs.readFileSync(`${ROOT}skills/novel-reading/SKILL.md`, 'utf8').replace(/^---[\s\S]*?---\s*/, '')
+      } catch {
+        return
+      }
+      const dispose = scoped.skills.register({
+        name: 'novel-reading',
+        description: '读中文长篇小说建立七层可回溯记忆：分批读原文、写章摘要/弧摘要/全局印象/事实表/世界观/文风样本，读完后丢原文也能讨论、续写、查细节。',
+        source: 'bundled',
+        content,
+      })
+      scoped.effect(() => dispose, 'novel-memory: skill')
+    })
+  }
+}

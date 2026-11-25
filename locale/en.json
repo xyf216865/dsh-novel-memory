@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Novel Memory",
+    "description": "Seven-layer memory for long Chinese novels: chapters stay on disk; memos, arcs, impressions, worldbook, facts and style samples are written while reading, so the book can be discussed, continued or fact-checked without the source text in context.",
+    "detail": "docs/DETAIL.md"
+  }
+}
