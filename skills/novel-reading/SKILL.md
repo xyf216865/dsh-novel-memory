@@ -29,7 +29,8 @@ description: 读中文长篇小说、建立可回溯的七层记忆，读完后�
 - 每轮只 `novel_index action=read from=N to=M`，一次 5–10 章（或到 `maxChars` 上限）；不要一次读完整本。
 - 读完这一批，**先写 L1 再读下一批**：
   `novel_memo action=write layer=l1 chapter=<n> one="<≤100 字>" marks=[{k,...}]`
-- 标记只在真发生时写：`turn` 转折、`foreshadow` 埋设（带 id）、`payoff` 回收（同一个 id）、`enter`/`exit`、`relation`、`lore`。
+- 标记只在真发生时写：`turn` 转折、`foreshadow` 埋设（带 id）、`payoff` 回收（同一个 id）、`motif` 母题、`enter`/`exit`、`relation`、`lore`。
+- `foreshadow` 的门槛：文中有具体对象（物件、半句话、没解释的异常、明说的许诺/威胁），而且读者会追问「后来呢」。主题句、反复意象、作者的讽刺、人物心理，一律 `motif`，不进欠账。拿不准标 `motif`。
 - L1 保持一行一章；最近 50 章合计 5000 字上下，更早的写 L3 时压成 ≤20 字的一句。
 - 每 15–25 章划一个弧：`novel_memo layer=l2 from= to= title= summary=`（≤600 字）。
 

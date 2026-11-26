@@ -103,6 +103,7 @@ window.__ModuleLoader__.load({
         relations: '关系',
         timeline: '时间线',
         foreshadow: '伏笔',
+        motif: '母题',
         addRow: '加一行',
         advancedJson: '高级：直接改 JSON',
         applyJson: '用 JSON 覆盖',
@@ -250,6 +251,7 @@ window.__ModuleLoader__.load({
         relations: 'Relations',
         timeline: 'Timeline',
         foreshadow: 'Foreshadowing',
+        motif: 'Motif',
         addRow: 'Add row',
         advancedJson: 'Advanced: edit JSON',
         applyJson: 'Apply JSON',
@@ -363,7 +365,7 @@ window.__ModuleLoader__.load({
 @media(max-width:720px){.nm-page .nm-grid2{grid-template-columns:minmax(0,1fr)}}
 `
 
-    const MARK_KINDS = ['turn', 'foreshadow', 'payoff', 'enter', 'exit', 'relation', 'lore']
+    const MARK_KINDS = ['turn', 'foreshadow', 'payoff', 'motif', 'enter', 'exit', 'relation', 'lore']
 
     // Unsaved draft keys ("l1:12", "l3:reader", …). Switching books must not silently drop them.
     const dirtyKeys = new Set()

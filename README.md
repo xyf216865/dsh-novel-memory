@@ -30,6 +30,8 @@ git clone <this-repo> novel-memory
 
 常用工具：`novel_index`、`novel_find`、`novel_memo`、`novel_world`、`novel_check`（以及入口 `novel_wake`）。
 
+`novel_check` 的「未回收伏笔」只算真正的伏笔：文中有具体对象、读者会追问「后来呢」的那种。主题句、反复意象、作者的讽刺记成 `motif`（母题），单独计数，不算欠账。
+
 ## 数据放哪
 
 默认 `~/.dsh-novel/books/<书名>/`，一个目录一本书：原文、分章、L1/L2、事实、世界观、文风、印象、笔记、decisions 日志。可用环境变量 `DSH_NOVEL_HOME` 或插件配置 `home` 改位置。
@@ -55,4 +57,4 @@ git clone <this-repo> novel-memory
 
 ## 许可
 
-未指定。想公开发布的话，自己选一个（MIT 最省事），并在这个文件里补上。
+MIT，见 `LICENSE`。
