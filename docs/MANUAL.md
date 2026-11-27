@@ -39,8 +39,7 @@ novel_index action=read from=5 to=12
 novel_memo layer=l1 chapter=7 one="……" marks=[{k:"foreshadow",id:"f12",note:"……"}]
 ```
 
-- `one` 最多 400 字。按距最新章远近分档：≤50 章 4–8 句；51–100 章 3–6 句；更早 2–4 句。
-- 每 50 章跑一次 `novel_check types=[l1]`，把超标的章改短（回压）。
+- `one` 最多 150 字（超出会被截）。写清这一章发生了什么、谁在场、什么变了；各章等长，不按远近分档。
 - `marks[].k` 只认：`turn` 转折 / `foreshadow` 伏笔埋设 / `payoff` 伏笔回收 / `motif` 母题 / `enter` 人物入场 / `exit` 人物退场 / `relation` 关系变更 / `lore` 世界观揭示。
 - `foreshadow` 与 `payoff` 用同一个 `id` 配对；不给 id 时系统自动生成。
 - 拿不准算不算伏笔就写 `motif`——母题不计欠账。
@@ -124,6 +123,7 @@ novel_check types=[coverage,unrecovered,dead,cadence,conflict,l1,prune,injection
 - `layer 只能是 l1 / l2 / l3 / impression / decisions / note` → 参数名写错。
 - `facts 只分 characters / relations / foreshadow` → 没有 timeline 了，时间点写 L1。
 - `单章单通道最多 3 条` / `摘录要 3–7 句` → 内容层面的硬限制。
+- L1 写到 150 字为止，超出直接丢掉，不报错。
 - `文风窗口已锁（用户锁定）` → 让用户在页面上解锁，不要绕过。
 
 ## 数据在哪儿

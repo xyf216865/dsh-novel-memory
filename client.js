@@ -66,7 +66,7 @@ window.__ModuleLoader__.load({
         remove: '删掉',
         confirmRemove: '确认删掉？',
         add: '新增',
-        oneLine: '一行摘要（最近 50 章 4–8 句，再往前逐档压短；最多 400 字）',
+        oneLine: '一行摘要（写清这一章发生了什么；最多 150 字）',
         marksLabel: '事件标记',
         addMark: '加一条标记',
         markKind: '类型',
@@ -213,7 +213,7 @@ window.__ModuleLoader__.load({
         remove: 'Delete',
         confirmRemove: 'Delete?',
         add: 'Add',
-        oneLine: 'Chapter summary (4–8 sentences for the latest 50 chapters; older ones shorter; 400 chars max)',
+        oneLine: 'Chapter summary (what happened in this chapter; 150 chars max)',
         marksLabel: 'Event marks',
         addMark: 'Add mark',
         markKind: 'Kind',
@@ -512,7 +512,7 @@ window.__ModuleLoader__.load({
           ? h('div', { className: 'nm-marks' }, row.marks.map((mark, i) => h('span', { className: 'nm-mark', key: i }, `${mark.k}${mark.id ? ` ${mark.id}` : ''}${mark.note ? `：${mark.note}` : ''}`)))
           : null,
         open ? h('div', { className: 'nm-list', id: `nm-l1-${row.n}` },
-          h(Field, { label: `${t('oneLine')}（${one.length}/400）` },
+          h(Field, { label: `${t('oneLine')}（${one.length}/150）` },
             h('textarea', {
               className: 'nm-textarea', value: one, maxLength: 200, rows: 2,
               onChange: event => { setOne(event.target.value); markDirty(`l1:${row.n}`) },
@@ -565,7 +565,7 @@ window.__ModuleLoader__.load({
             missing.slice(0, 200).map(n => h('option', { key: n, value: String(n) }, `ch${n}`)),
           ),
           h('input', {
-            className: 'nm-input nm-grow', value: one, maxLength: 400, placeholder: t('oneLine'), 'aria-label': t('oneLine'),
+            className: 'nm-input nm-grow', value: one, maxLength: 150, placeholder: t('oneLine'), 'aria-label': t('oneLine'),
             onChange: event => { setOne(event.target.value); markDirty('l1:new') },
           }),
           h('button', { type: 'button', className: 'nm-btn-primary', disabled: busy, onClick: commit }, busy ? t('saving') : t('save')),
