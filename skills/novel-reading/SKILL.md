@@ -20,7 +20,7 @@ description: 读中文长篇小说、建立可回溯的七层记忆，读完后�
 
 ## 开书
 
-1. 用 `novel_index action=open`（`path` 写**绝对路径**——相对路径按 DSH 进程目录解析，不是会话目录；或把用户贴的正文放进 `text`）。正文门槛 800 字。返回章数、字数、阅读模式 `mode`（`full` 全读 / `pipeline` 分批）与切分方式 `split`（`headings` / `chunked`），两个别混。
+1. 用 `novel_index action=open`（`path` 写**绝对路径**——相对路径按 DSH 进程目录解析，不是会话目录；或把用户贴的正文放进 `text`）。返回章数、字数、阅读模式 `mode`（`full` 全读 / `pipeline` 分批）与切分方式 `split`（`headings` / `chunked`），两个别混。
    打开不等于挂载：还要 `novel_index action=attach`（或 `novel_wake action=on book=<名>`）才会带摘要。
 2. `mode=full` 表示全文 <15 万字，可以全读；否则走分批读。
 3. 用 `novel_index action=attach` 把这书挂到当前会话，之后每轮自动带摘要。

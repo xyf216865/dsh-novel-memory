@@ -6,7 +6,11 @@
 - **不丢前因**：每回合的摘要里有一张全书弧表（一行一弧）、最近 5 弧的详细摘要，以及带描述的未收伏笔清单——挂到收回为止，长篇读到后面也不会忘了主角从哪来。
 - **可回溯**：每条记忆都带 `[chN]`，讨论时可回原文核对。
 - **只存不猜**：插件只负责存和取；摘要、印象、设定都由 agent 在读的时候写。
-- **按需开启**：平时只常驻一个 `novel_wake`，聊到书才唤出 `novel_*` 五个工具；注入的记忆只给挂着书的那一个会话。
+- **按需开启**：平时只常驻 `novel_wake` 和 `novel_help` 两个入口，聊到书才唤出 `novel_*` 五个工具；注入的记忆只给挂着书的那一个会话。
+
+## 说明书
+
+agent 第一次用、或参数拿不准，调 `novel_help`（无参数）会返回 `docs/MANUAL.md` 全文；`novel_wake` 开启时也会提示先读它。
 
 ## 安装
 
@@ -29,7 +33,7 @@ git clone <this-repo> novel-memory
 
 对 agent 说「读一下这本：D:\book\某本书.txt」，或自己在页面选文件。agent 会按 `skills/novel-reading` 的流程分批读、写 L1/L2/F/L4/V，读完写 L3 并跑一次 `novel_check`。
 
-常用工具：`novel_index`、`novel_find`、`novel_memo`、`novel_world`、`novel_check`（以及入口 `novel_wake`）。
+常用工具：`novel_index`、`novel_find`、`novel_memo`、`novel_world`、`novel_check`（以及入口 `novel_wake` / `novel_help`）。
 
 `novel_check` 的「未回收伏笔」只算真正的伏笔：文中有具体对象、读者会追问「后来呢」的那种。主题句、反复意象、作者的讽刺记成 `motif`（母题），单独计数，不算欠账。关系两端不限于人物，组织、地点、种族都能写；时间点不单独立表，写进 L1 即可。
 

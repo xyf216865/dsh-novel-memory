@@ -19,8 +19,8 @@ export const name = 'novel-memory'
 export const inject = ['tools']
 
 const WAKE_DESCRIPTION = [
-  '小说记忆按需开启：默认收起，不占上下文。用户提到具体小说、要求读书/续写/查书/管理书架时 action=on 唤出五个 novel_* 工具；不聊书别开，用完 action=off。',
-  '冷启动只要记住三件：①open 用绝对路径（正文≥800 字）或 text= 正文，open 之后还要 attach 才算挂上，本工具 book=<书名> 可一步挂；②章号一律用 [chN]，不是标题里的「第 X 章」；③on 会直接返回全部参数速查，别猜着写。',
+  '小说记忆按需开启：默认收起，不占上下文。用户提到具体小说、要求读书/续写/查书/管理书架时 action=on 唤出 novel_* 工具；不聊书别开，用完 action=off。',
+  '用法与参数不在描述里：第一次用、或参数/报错拿不准，先调 novel_help 读说明书。两件必错的事先说：open 要绝对路径，open 完还要 attach；章号一律用 [chN]。',
 ].join(String.fromCharCode(10))
 
 export function apply(ctx, config = {}) {
@@ -78,17 +78,7 @@ export function apply(ctx, config = {}) {
     return true
   }
 
-  const WAKE_GUIDE = [
-    '参数速查（照这个写，别猜）：',
-    '- open：novel_index action=open path=<绝对路径> | text=<正文>，正文 ≥800 字；再 action=attach 才算挂上。',
-    '- 读：action=read from=1 to=8；引用一律用 [chN]。',
-    '- L1：novel_memo layer=l1 chapter=3 one="≤400 字，按远近 2–8 句" marks=[{k:"foreshadow#f12",note:"…"}]；k 只有 turn / foreshadow / payoff / motif / enter / exit / relation / lore，拿不准算不算伏笔就 motif。',
-    '- L2：layer=l2 from=1 to=12 title="…" summary="…"（15–25 章一弧）。',
-    '- L3：layer=l3 part=reader|author text="…"；part 只有这两个，想记决定用 layer=decisions。',
-    '- 事实：kind=facts action=set fact=character entry={name,status,tier,deathChapter,note}；fact=relation entry={a,b,type,since}（两端可以是组织/地点/种族）；fact=foreshadow entry={id,setupChapter,desc}。',
-    '- 世界观：kind=world action=set tag="…" one="一行" body="…"；文风：kind=style action=append passage={chapter:N,text:"3–7 句"}。',
-    '- 体检：novel_check types=[coverage,unrecovered,dead,cadence,conflict,l1,prune]。',
-  ].join(String.fromCharCode(10))
+  const WAKE_GUIDE = '第一次用强烈建议先调 novel_help 读一遍说明书。要点：open 用绝对路径并 attach；章号用 [chN]；参数不确定就 novel_help。'
 
   function wake(args, exec) {
     const agent = exec && exec.agent
@@ -121,6 +111,20 @@ export function apply(ctx, config = {}) {
   // them on every call, so it starts dispatching the new implementation too.
   globalThis.__dshNovelWake = { wake, activate, deactivate }
 
+  ctx.effect(() => ctx.tools.register({
+    name: 'novel_help',
+    description: '读 novel-memory 的完整使用说明：七层是什么、每个工具的参数形状、长度限制、常见报错含义、数据放在哪。第一次用、参数拿不准、或看不懂报错时调它；无参数，返回全文。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    output: { schema: {}, render: (_args, value) => [{ type: 'text', text: value.text }] },
+    async execute() {
+      try {
+        const file = new URL('./docs/MANUAL.md', import.meta.url)
+        return { text: fs.readFileSync(file, 'utf8') }
+      } catch (error) {
+        return { text: '说明书读不到：' + error.message + '（插件包内缺 docs/MANUAL.md；参数看 README 或源码 schema）' }
+      }
+    },
+  }), 'novel-memory: help')
   ctx.effect(() => ctx.tools.register({
     name: 'novel_wake',
     description: WAKE_DESCRIPTION,
