@@ -19,9 +19,8 @@ export const name = 'novel-memory'
 export const inject = ['tools']
 
 const WAKE_DESCRIPTION = [
-  '小说记忆按需开启：默认收起，不占上下文。用户提到具体小说、要求读书/续写/查书/管理书架时 action=on 唤出 novel_index / novel_find / novel_memo / novel_world / novel_check；不聊书别开，用完 action=off。',
-  '冷启动够用的四条：①开书 action=open path=<绝对路径，正文≥800 字> 或 text=<正文>，再 attach 才算挂上（本工具 book=<书名> 可一步挂）；②章号一律用 [chN]，别用标题里的「第 X 章」；③写摘要 novel_memo layer=l1 chapter=N one=… marks=[{k:"foreshadow#f12"}]，part 只有 reader/author；④客观层 novel_world kind=facts action=set fact=character entry={name,status,tier,deathChapter,note}。',
-  'on 之后会返回完整参数速查；参数写错会直接报错，不会静默取默认值。',
+  '小说记忆按需开启：默认收起，不占上下文。用户提到具体小说、要求读书/续写/查书/管理书架时 action=on 唤出五个 novel_* 工具；不聊书别开，用完 action=off。',
+  '冷启动只要记住三件：①open 用绝对路径（正文≥800 字）或 text= 正文，open 之后还要 attach 才算挂上，本工具 book=<书名> 可一步挂；②章号一律用 [chN]，不是标题里的「第 X 章」；③on 会直接返回全部参数速查，别猜着写。',
 ].join(String.fromCharCode(10))
 
 export function apply(ctx, config = {}) {
@@ -99,7 +98,7 @@ export function apply(ctx, config = {}) {
       return { text: had ? '小说记忆工具已收起，本会话不再占用上下文。' : '小说记忆工具本来就没开着。' }
     }
     activate(agent)
-    let text = '已开启小说记忆工具：novel_index / novel_find / novel_memo / novel_world / novel_check。用完记得 action=off。\n\n' + WAKE_GUIDE.join(String.fromCharCode(10))
+    let text = '已开启小说记忆工具：novel_index / novel_find / novel_memo / novel_world / novel_check。用完记得 action=off。\n\n' + WAKE_GUIDE
     if (args && args.book) {
       try {
         const id = store.resolve(args.book)
