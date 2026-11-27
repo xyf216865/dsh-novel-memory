@@ -32,7 +32,7 @@ description: 读中文长篇小说、建立可回溯的七层记忆，读完后�
 - **不要用 subagent / subagent_fork 读原文**：把章节拆给别人读，回来的只有别人嚼过的摘要，前因后果和原句都会被截掉。读原文只能自己一批一批读。
 - 读完这一批，**先写 L1 再读下一批**：
   `novel_memo action=write layer=l1 chapter=<n> one="<按档位写，最多 400 字>" marks=[{k,...}]`
-- 标记只在真发生时写：`turn` 转折、`foreshadow` 埋设（带 id）、`payoff` 回收（同一个 id）、`motif` 母题、`enter`/`exit`、`relation`、`lore`。
+- 标记只在真发生时写：`turn` 转折、`foreshadow` 埋设（带 id）、`payoff` 回收（同一个 id）、`motif` 母题、`enter`/`exit`、`relation`、`lore`；`k` 可以写 `"foreshadow#f12"` 把 id 一起带上，页面上是等价写法。
 - `foreshadow` 的门槛：文中有具体对象（物件、半句话、没解释的异常、明说的许诺/威胁），而且读者会追问「后来呢」。主题句、反复意象、作者的讽刺、人物心理，一律 `motif`，不进欠账。拿不准标 `motif`。
 - L1 保持一行一章，但长短按远近分档（单章最多 400 字，超出会被截）：
   - 距最新章 ≤50 章：4–8 句，写清这一章发生了什么、谁在场、什么变了；
@@ -57,7 +57,7 @@ description: 读中文长篇小说、建立可回溯的七层记忆，读完后�
 
 ## 边读边记客观层
 
-- 出现人物、关系变化、死亡/复活、埋伏笔时，立刻 `novel_world kind=facts`：
+- 出现人物、关系变化、死亡/复活、埋伏笔时，立刻 `novel_world kind=facts`（`action=set`，`write` 是同义词；记录放 `entry={...}` 里，也可以平铺 `name=`、`chapter=` 这些字段）：
   character `{name,aliases,role,tier,status,deathChapter}`、relation `{a,b,type,since}`、foreshadow `{id,setupChapter,payoffChapter}`。
 - 时间点不单独建表：谁在[chN]做了什么，已经写在 L1 那一行里，事实表只保留人物/关系/伏笔。
 - 关系两端不限于人物：组织、地点、种族、阵营都可以直接当 a/b 写，工具不再拿人物表卡你。
@@ -80,7 +80,7 @@ description: 读中文长篇小说、建立可回溯的七层记忆，读完后�
 
 ## 读完
 
-- L3 分两半写，不许混：
+- L3 分两半写，不许混（`part` 只接受 `reader` / `author`，写错会直接报错；决定写 `layer=decisions`）：
   - `part=reader`：读者感想（我哭了、哪段爽、哪个人讨厌）。
   - `part=author`：作者分析（结构、伏笔密度、延迟揭示、章末钩子）。
 - 写 L3 时把途中的印象 consolidate 进去，但**别删条目**：总账和碎片是两种东西，留着才能看自己前后判断差多少。

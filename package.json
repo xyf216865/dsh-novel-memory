@@ -1,6 +1,6 @@
 {
   "name": "dsh-novel-memory",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "private": true,
   "type": "module",
   "description": "七层小说记忆：读一遍，丢掉原文也能讨论剧情、续写、查细节。",
