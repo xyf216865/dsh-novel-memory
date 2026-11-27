@@ -18,7 +18,11 @@ provideIngest(ingest)
 export const name = 'novel-memory'
 export const inject = ['tools']
 
-const WAKE_DESCRIPTION = '小说记忆按需开启：用户提到具体小说、要求读书/续写/查书或管理书架时，先 action=on 唤出 novel_* 工具；不聊书别开，用完 action=off。'
+const WAKE_DESCRIPTION = [
+  '小说记忆按需开启：默认收起，不占上下文。用户提到具体小说、要求读书/续写/查书/管理书架时 action=on 唤出 novel_index / novel_find / novel_memo / novel_world / novel_check；不聊书别开，用完 action=off。',
+  '冷启动够用的四条：①开书 action=open path=<绝对路径，正文≥800 字> 或 text=<正文>，再 attach 才算挂上（本工具 book=<书名> 可一步挂）；②章号一律用 [chN]，别用标题里的「第 X 章」；③写摘要 novel_memo layer=l1 chapter=N one=… marks=[{k:"foreshadow#f12"}]，part 只有 reader/author；④客观层 novel_world kind=facts action=set fact=character entry={name,status,tier,deathChapter,note}。',
+  'on 之后会返回完整参数速查；参数写错会直接报错，不会静默取默认值。',
+].join(String.fromCharCode(10))
 
 export function apply(ctx, config = {}) {
   const store = createStore(config)
@@ -77,18 +81,15 @@ export function apply(ctx, config = {}) {
 
   const WAKE_GUIDE = [
     '参数速查（照这个写，别猜）：',
-    '- novel_index open path=绝对路径 | text=…（文件 ≥800 字）；再 attach 才把书挂到会话，或 novel_wake action=on book=<名>。read from=3 to=8，章号就是 [chN]。',
-    '- 原文标题里的「第 X 章」是文件自己的编号，可能和 [chN] 差几章（缺章/合并）；引用一律用 [chN]。',
-    '- novel_memo layer=l1 chapter=3 one="≤400 字，按远近 2–8 句" marks=[{k:"foreshadow#f12",note:"…"}]',
-    '  标记 k 只有 turn / foreshadow / payoff / motif / enter / exit / relation / lore；拿不准是不是伏笔就写 motif。',
-    '- novel_memo layer=l2 from=1 to=12 title="…" summary="…"（15–25 章一弧）',
-    '- novel_memo layer=l3 part=reader|author text="…"——part 只有这两个；想记决定用 layer=decisions。',
-    '- novel_world kind=facts action=set fact=character entry={name,status,tier,deathChapter,note}',
-    '  fact=relation entry={a,b,type,since}（a/b 可以是组织、地点、种族）；fact=foreshadow entry={id,setupChapter,desc}（action=write 等价于 set）',
-    '- novel_world kind=world action=set tag="…" one="一行摘要" body="…" level=A|B aliases=[…]',
-    '- novel_world kind=style action=append passage={chapter:N,text:"3–7 句"}',
-    '- 参数写错会直接报错，不会被当成默认值。',
-  ].join('\n')
+    '- open：novel_index action=open path=<绝对路径> | text=<正文>，正文 ≥800 字；再 action=attach 才算挂上。',
+    '- 读：action=read from=1 to=8；引用一律用 [chN]。',
+    '- L1：novel_memo layer=l1 chapter=3 one="≤400 字，按远近 2–8 句" marks=[{k:"foreshadow#f12",note:"…"}]；k 只有 turn / foreshadow / payoff / motif / enter / exit / relation / lore，拿不准算不算伏笔就 motif。',
+    '- L2：layer=l2 from=1 to=12 title="…" summary="…"（15–25 章一弧）。',
+    '- L3：layer=l3 part=reader|author text="…"；part 只有这两个，想记决定用 layer=decisions。',
+    '- 事实：kind=facts action=set fact=character entry={name,status,tier,deathChapter,note}；fact=relation entry={a,b,type,since}（两端可以是组织/地点/种族）；fact=foreshadow entry={id,setupChapter,desc}。',
+    '- 世界观：kind=world action=set tag="…" one="一行" body="…"；文风：kind=style action=append passage={chapter:N,text:"3–7 句"}。',
+    '- 体检：novel_check types=[coverage,unrecovered,dead,cadence,conflict,l1,prune]。',
+  ].join(String.fromCharCode(10))
 
   function wake(args, exec) {
     const agent = exec && exec.agent
@@ -98,7 +99,7 @@ export function apply(ctx, config = {}) {
       return { text: had ? '小说记忆工具已收起，本会话不再占用上下文。' : '小说记忆工具本来就没开着。' }
     }
     activate(agent)
-    let text = '已开启小说记忆工具：novel_index / novel_find / novel_memo / novel_world / novel_check。用完记得 action=off。\n\n' + WAKE_GUIDE
+    let text = '已开启小说记忆工具：novel_index / novel_find / novel_memo / novel_world / novel_check。用完记得 action=off。\n\n' + WAKE_GUIDE.join(String.fromCharCode(10))
     if (args && args.book) {
       try {
         const id = store.resolve(args.book)
