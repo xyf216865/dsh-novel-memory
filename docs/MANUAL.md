@@ -36,7 +36,7 @@ novel_index action=read from=5 to=12
 ### L1 章摘要
 
 ```
-novel_memo layer=l1 chapter=7 one="……" marks=[{k:"foreshadow",id:"f12",note:"……"}]
+novel_memo action=write layer=l1 chapter=7 one="……" marks=[{k:"foreshadow",id:"f12",note:"……"}]
 ```
 
 - `one` 最多 150 字（超出会被截）。写清这一章发生了什么、谁在场、什么变了；各章等长，不按远近分档。
