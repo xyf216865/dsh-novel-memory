@@ -75,6 +75,20 @@ export function apply(ctx, config = {}) {
     return true
   }
 
+  const WAKE_GUIDE = [
+    '参数速查（照这个写，别猜）：',
+    '- novel_index open path=… | text=…；read from=3 to=8。章号就是 [chN]；标题里的「第 X 章」是原文编号，可能对不上。',
+    '- novel_memo layer=l1 chapter=3 one="≤400 字，按远近 2–8 句" marks=[{k:"foreshadow#f12",note:"…"}]',
+    '  标记 k 只有 turn / foreshadow / payoff / motif / enter / exit / relation / lore；拿不准是不是伏笔就写 motif。',
+    '- novel_memo layer=l2 from=1 to=12 title="…" summary="…"（15–25 章一弧）',
+    '- novel_memo layer=l3 part=reader|author text="…"——part 只有这两个；想记决定用 layer=decisions。',
+    '- novel_world kind=facts action=set fact=character entry={name,status,tier,deathChapter,note}',
+    '  fact=relation entry={a,b,type,since}（a/b 可以是组织、地点、种族）；fact=foreshadow entry={id,setupChapter,desc}（action=write 等价于 set）',
+    '- novel_world kind=world action=set tag="…" one="一行摘要" body="…" level=A|B aliases=[…]',
+    '- novel_world kind=style action=append passage={chapter:N,text:"3–7 句"}',
+    '- 参数写错会直接报错，不会被当成默认值。',
+  ].join('\n')
+
   function wake(args, exec) {
     const agent = exec && exec.agent
     const action = String((args && args.action) || 'on')
@@ -83,7 +97,7 @@ export function apply(ctx, config = {}) {
       return { text: had ? '小说记忆工具已收起，本会话不再占用上下文。' : '小说记忆工具本来就没开着。' }
     }
     activate(agent)
-    let text = '已开启小说记忆工具：novel_index / novel_find / novel_memo / novel_world / novel_check。用完记得 action=off。'
+    let text = '已开启小说记忆工具：novel_index / novel_find / novel_memo / novel_world / novel_check。用完记得 action=off。\n\n' + WAKE_GUIDE
     if (args && args.book) {
       try {
         const id = store.resolve(args.book)
