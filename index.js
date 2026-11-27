@@ -24,12 +24,12 @@ export function apply(ctx, config = {}) {
   const store = createStore(config)
   const prompt = mountPrompt(ctx, store, buildDigest)
   const tools = toolDefinitions(store, prompt)
-  // Keep a process-wide pointer so already-registered tools dispatch to the
-  // newest implementation after a plugin reload (Node caches old instances).
-  const latest = new Map(tools.map(tool => [tool.name, tool]))
-  globalThis.__dshNovelLatest = latest
 
-  const mounted = new Map() // agentId -> { agent, disposers }
+  // Process-wide pointers survive a plugin reload. Without them the host keeps
+  // the first batch of tools it ever registered: a reload would import new
+  // code but the old execute closures would still answer.
+  globalThis.__dshNovelLatest = new Map(tools.map(tool => [tool.name, tool]))
+  const mounted = globalThis.__dshNovelMounted || (globalThis.__dshNovelMounted = new Map())
 
   function agentTools(agent) {
     return agent && agent.ctx && agent.ctx.tools ? agent.ctx.tools : ctx.tools
@@ -38,18 +38,26 @@ export function apply(ctx, config = {}) {
   function activate(agent) {
     if (!agent) return false
     const key = agent.id || String(agent)
-    if (mounted.has(key)) return true
+    // Drop the previous batch first: agent-scoped registrations are not cleaned
+    // up by the host when the plugin reloads, and a duplicate name is refused.
+    const previous = mounted.get(key)
+    if (previous) {
+      for (const dispose of previous.disposers || []) {
+        try { dispose() } catch { /* already gone */ }
+      }
+      mounted.delete(key)
+    }
     const scope = agent.ctx && typeof agent.ctx.effect === 'function' ? agent.ctx : ctx
     const target = agentTools(agent)
     const disposers = []
     for (const tool of tools) {
       const stable = { ...tool, execute: (args, exec) => (globalThis.__dshNovelLatest.get(tool.name) || tool).execute(args, exec) }
-
       try {
         const dispose = scope.effect(() => target.register(stable), `novel-memory: ${tool.name}`)
         if (typeof dispose === 'function') disposers.push(dispose)
       } catch {
-        // already registered in an old instance: leave it, the fresh one still serves new sessions
+        // registration refused (old instance holds the name): the newest code
+        // still reaches it through __dshNovelLatest
       }
     }
     mounted.set(key, { agent, disposers })
@@ -60,12 +68,43 @@ export function apply(ctx, config = {}) {
     const key = agent && (agent.id || String(agent))
     const entry = key ? mounted.get(key) : null
     if (!entry) return false
-    for (const dispose of entry.disposers) {
+    for (const dispose of entry.disposers || []) {
       try { dispose() } catch { /* already gone */ }
     }
     mounted.delete(key)
     return true
   }
+
+  function wake(args, exec) {
+    const agent = exec && exec.agent
+    const action = String((args && args.action) || 'on')
+    if (action === 'off') {
+      const had = deactivate(agent)
+      return { text: had ? '小说记忆工具已收起，本会话不再占用上下文。' : '小说记忆工具本来就没开着。' }
+    }
+    activate(agent)
+    let text = '已开启小说记忆工具：novel_index / novel_find / novel_memo / novel_world / novel_check。用完记得 action=off。'
+    if (args && args.book) {
+      try {
+        const id = store.resolve(args.book)
+        if (agent && agent.id) {
+          store.setAttached(agent.id, id)
+          if (typeof prompt.ensure === 'function') {
+            try { prompt.ensure(agent) } catch { /* best effort */ }
+          }
+        }
+        const { book } = store.load(id)
+        text += `\n已把《${book.title}》[${id}] 挂到本会话。`
+      } catch (error) {
+        text += `\n（挂书失败：${error.message}）`
+      }
+    }
+    return { text }
+  }
+
+  // A reload replaces these pointers; the already-registered wake tool reads
+  // them on every call, so it starts dispatching the new implementation too.
+  globalThis.__dshNovelWake = { wake, activate, deactivate }
 
   ctx.effect(() => ctx.tools.register({
     name: 'novel_wake',
@@ -81,30 +120,8 @@ export function apply(ctx, config = {}) {
     },
     output: { schema: {}, render: (_args, value) => [{ type: 'text', text: value.text }] },
     execute(args, exec) {
-      const agent = exec && exec.agent
-      const action = String((args && args.action) || 'on')
-      if (action === 'off') {
-        const had = deactivate(agent)
-        return { text: had ? '小说记忆工具已收起，本会话不再占用上下文。' : '小说记忆工具本来就没开着。' }
-      }
-      activate(agent)
-      let text = '已开启小说记忆工具：novel_index / novel_find / novel_memo / novel_world / novel_check。用完记得 action=off。'
-      if (args && args.book) {
-        try {
-          const id = store.resolve(args.book)
-          if (agent && agent.id) {
-            store.setAttached(agent.id, id)
-            if (typeof prompt.ensure === 'function') {
-              try { prompt.ensure(agent) } catch { /* best effort */ }
-            }
-          }
-          const { book } = store.load(id)
-          text += `\n已把《${book.title}》[${id}] 挂到本会话。`
-        } catch (error) {
-          text += `\n（挂书失败：${error.message}）`
-        }
-      }
-      return { text }
+      const api = globalThis.__dshNovelWake
+      return (api && typeof api.wake === 'function' ? api.wake : wake)(args, exec)
     },
   }), 'novel-memory: wake')
 

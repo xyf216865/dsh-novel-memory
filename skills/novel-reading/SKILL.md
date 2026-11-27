@@ -23,10 +23,13 @@ description: 读中文长篇小说、建立可回溯的七层记忆，读完后�
 1. 用 `novel_index action=open`（`path` 指向 txt，或把用户贴的正文放进 `text`）。返回章数、字数、`mode`。
 2. `mode=full` 表示全文 <15 万字，可以全读；否则走分批读。
 3. 用 `novel_index action=attach` 把这书挂到当前会话，之后每轮自动带摘要。
+4. 摘要里固定有：全书弧表（一行一弧）、近 5 弧摘要、未收伏笔（带描述，挂到收回为止）、近章 L1。读下一批之前先扫一遍，别把前因读丢。
+5. 章标题支持 第X章/节/回、序言、楔子、尾声、后记、番外/番外篇/外传/特别篇（含番外一、番外·xxx 这类写法），它们都会切成独立章。
 
 ## 读
 
 - 每轮只 `novel_index action=read from=N to=M`，一次 5–10 章（或到 `maxChars` 上限）；不要一次读完整本。
+- **不要用 subagent / subagent_fork 读原文**：把章节拆给别人读，回来的只有别人嚼过的摘要，前因后果和原句都会被截掉。读原文只能自己一批一批读。
 - 读完这一批，**先写 L1 再读下一批**：
   `novel_memo action=write layer=l1 chapter=<n> one="<≤100 字>" marks=[{k,...}]`
 - 标记只在真发生时写：`turn` 转折、`foreshadow` 埋设（带 id）、`payoff` 回收（同一个 id）、`motif` 母题、`enter`/`exit`、`relation`、`lore`。
@@ -50,10 +53,12 @@ description: 读中文长篇小说、建立可回溯的七层记忆，读完后�
 
 ## 边读边记客观层
 
-- 出现人物、关系变化、死亡/复活、明确时间点、埋伏笔时，立刻 `novel_world kind=facts`：
-  character `{name,aliases,role,tier,status,deathChapter}`、relation `{a,b,type,since}`、timeline、foreshadow `{id,setupChapter,payoffChapter}`。
+- 出现人物、关系变化、死亡/复活、埋伏笔时，立刻 `novel_world kind=facts`：
+  character `{name,aliases,role,tier,status,deathChapter}`、relation `{a,b,type,since}`、foreshadow `{id,setupChapter,payoffChapter}`。
+- 时间点不单独建表：谁在[chN]做了什么，已经写在 L1 那一行里，事实表只保留人物/关系/伏笔。
+- 关系两端不限于人物：组织、地点、种族、阵营都可以直接当 a/b 写，工具不再拿人物表卡你。
 - 人物分三档：`A` 主角/主线相关（常驻）、`B` 会再出现的配角（一行）、`C` 无伏笔的龙套。建卡门槛守住——只给「会再出现」或「影响剧情」的建。
-- C 级人物死了 20 章以后可以归档：先 `novel_check types=[prune]` 看候选，再 `novel_world kind=facts action=archive name=<名>`；墓碑只留一行，`action=restore` 能还原，关系会一起归档/还原。dead 检查不扫墓碑。
+- C 级人物死了 20 章以后可以归档：先 `novel_check types=[prune]` 看候选，再 `novel_world kind=facts action=archive name=<名>`；墓碑保留外号表（aliases）和一行说明，`action=restore` 能还原，关系会一起归档/还原。dead 检查不扫墓碑。
 - 世界观设定（地名、门派、功法、规矩、与现实不同的常识）用 `kind=world`：
   只给「会再出现」或「影响剧情」的建卡；A 级给反复出现的主轴，其余 B 级一行。
   正式名、俗名、尊称、绰号、错字全塞进 `aliases`——检索靠它。

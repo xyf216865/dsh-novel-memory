@@ -101,7 +101,6 @@ window.__ModuleLoader__.load({
         factsHint: '事实永不压缩：只记可核对的事（谁死了、第几章、和谁什么关系），不写感想。',
         characters: '人物（生死 / 别名 / 身份）',
         relations: '关系',
-        timeline: '时间线',
         foreshadow: '伏笔',
         motif: '母题',
         addRow: '加一行',
@@ -249,7 +248,6 @@ window.__ModuleLoader__.load({
         factsHint: 'Facts never compress: only verifiable things.',
         characters: 'Characters (life / aliases / role)',
         relations: 'Relations',
-        timeline: 'Timeline',
         foreshadow: 'Foreshadowing',
         motif: 'Motif',
         addRow: 'Add row',
@@ -898,11 +896,6 @@ window.__ModuleLoader__.load({
         { key: 'b', label: 'b', kind: 'text' },
         { key: 'type', label: 'type', kind: 'text' },
         { key: 'since', label: 'since', kind: 'number' },
-        { key: 'note', label: 'note', kind: 'text' },
-      ] },
-      { key: 'timeline', label: 'timeline', fields: [
-        { key: 'chapter', label: 'chapter', kind: 'number' },
-        { key: 'event', label: 'event', kind: 'text' },
         { key: 'note', label: 'note', kind: 'text' },
       ] },
       { key: 'foreshadow', label: 'foreshadow', fields: [
