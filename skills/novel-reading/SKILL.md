@@ -20,7 +20,8 @@ description: 读中文长篇小说、建立可回溯的七层记忆，读完后�
 
 ## 开书
 
-1. 用 `novel_index action=open`（`path` 指向 txt，或把用户贴的正文放进 `text`）。返回章数、字数、`mode`。
+1. 用 `novel_index action=open`（`path` 写**绝对路径**——相对路径按 DSH 进程目录解析，不是会话目录；或把用户贴的正文放进 `text`）。正文门槛 800 字。返回章数、字数、阅读模式 `mode`（`full` 全读 / `pipeline` 分批）与切分方式 `split`（`headings` / `chunked`），两个别混。
+   打开不等于挂载：还要 `novel_index action=attach`（或 `novel_wake action=on book=<名>`）才会带摘要。
 2. `mode=full` 表示全文 <15 万字，可以全读；否则走分批读。
 3. 用 `novel_index action=attach` 把这书挂到当前会话，之后每轮自动带摘要。
 4. 摘要里固定有：全书弧表（一行一弧）、近 5 弧摘要、未收伏笔（带描述，挂到收回为止）、近章 L1。读下一批之前先扫一遍，别把前因读丢。
@@ -39,7 +40,7 @@ description: 读中文长篇小说、建立可回溯的七层记忆，读完后�
   - 距最新 51–100 章：3–6 句，只留主干与转折；
   - 更早：2–4 句，一句一件事。
 - **每过 50 章回压一次**：跑 `novel_check types=[l1]`，它按三档给出超标的章号与现句数；把偏长的改短（工具或脚本批量写回），别让旧章一直占着“最近”的长度。
-- 每 15–25 章划一个弧：`novel_memo layer=l2 from= to= title= summary=`（≤600 字）。
+- 每 15–25 章划一个弧：`novel_memo layer=l2 from= to= title= summary=`（≤600 字）。少于 15 章的短篇不用划弧，体检也不会再报缺口。
 
 ## 途中的感想
 

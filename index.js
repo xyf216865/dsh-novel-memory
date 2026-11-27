@@ -77,7 +77,8 @@ export function apply(ctx, config = {}) {
 
   const WAKE_GUIDE = [
     '参数速查（照这个写，别猜）：',
-    '- novel_index open path=… | text=…；read from=3 to=8。章号就是 [chN]；标题里的「第 X 章」是原文编号，可能对不上。',
+    '- novel_index open path=绝对路径 | text=…（文件 ≥800 字）；再 attach 才把书挂到会话，或 novel_wake action=on book=<名>。read from=3 to=8，章号就是 [chN]。',
+    '- 原文标题里的「第 X 章」是文件自己的编号，可能和 [chN] 差几章（缺章/合并）；引用一律用 [chN]。',
     '- novel_memo layer=l1 chapter=3 one="≤400 字，按远近 2–8 句" marks=[{k:"foreshadow#f12",note:"…"}]',
     '  标记 k 只有 turn / foreshadow / payoff / motif / enter / exit / relation / lore；拿不准是不是伏笔就写 motif。',
     '- novel_memo layer=l2 from=1 to=12 title="…" summary="…"（15–25 章一弧）',
